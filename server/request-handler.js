@@ -7,7 +7,10 @@ var requestHandler = function(request, response) {
 
   headers['Content-Type'] = "application/json";
 
-  if (request.method === "GET") {
+  if (request.method === "OPTIONS") {
+    response.writeHead(200, 'OK', headers);
+    response.end();
+  } else if (request.method === "GET") {
     if (request.url === "/classes/room1") {
       response.writeHead(200, headers);
       response.end(JSON.stringify({results:storage}));
