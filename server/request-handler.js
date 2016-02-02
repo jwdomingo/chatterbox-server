@@ -19,9 +19,19 @@ var requestHandler = function(request, response) {
       response.end();
     }
   } else if (request.method === "POST") {
-    storage.push(request._postData);
-    response.writeHead(201, headers);
-    response.end(JSON.stringify({results:storage}));
+    var body = '';
+    request.on('data', function(chunk) {
+      body += chunk.toString();
+    });
+
+    request.on('end', function() {
+      response.writeHead(201, 'OK', headers);
+
+      var decodeBody = JSON.parse(body);
+      storage.push(decodeBody);
+
+      response.end(JSON.stringify({results:storage}));
+    });
   }
 };
 
