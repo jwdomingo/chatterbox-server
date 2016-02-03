@@ -21,7 +21,6 @@ fs.readFile(file, function(error, data) {
   } else {
     if(data.length) {
       storage = JSON.parse(data);
-      console.log('File Read Successful', storage);
     }
   }
 });
@@ -33,13 +32,10 @@ var sendResponse = function(response, statusCode) {
 };
 
 var getHandler = function (request, response) {
-  console.log("Serving request type " + request.method + " for url " + request.url);
   sendResponse(response, 200);
 };
 
 var postHandler = function (request, response) {
-  console.log("Serving request type " + request.method + " for url " + request.url);
-
   var buffer = '';
   
   request.on('data', function(chunk) {
@@ -54,8 +50,6 @@ var postHandler = function (request, response) {
     fs.writeFile(file, JSON.stringify(storage), function(error) {
       if (error) {
         console.error(error);
-      } else {
-        console.log('File Write Successful');
       }
     });
 

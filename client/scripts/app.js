@@ -15,14 +15,14 @@ var app = {
 
     // Cache jQuery selectors
     app.$main = $('#main');
-    app.$message = $('#message');
+    app.$message = $('#chatBox');
     app.$chats = $('#chats');
-    app.$roomSelect = $('#roomSelect');
-    app.$send = $('#send');
+    app.$roomSelect = $('#rooms');
+    app.$send = $('#submitMsg');
 
     // Add listeners
     app.$main.on('click', '.username', app.addFriend);
-    app.$send.on('submit', app.handleSubmit);
+    app.$send.on('click', app.handleSubmit);
     app.$roomSelect.on('change', app.saveRoom);
 
     // Fetch previous messages
@@ -68,8 +68,10 @@ var app = {
         }
         // Get the last message
         var mostRecentMessage = data.results[data.results.length-1];
-        var displayedRoom = $('.chat span').first().data('roomname');
+        var displayedRoom = $('.chat a').first().data('roomname') || 'lobby';
+        
         app.stopSpinner();
+
         // Only bother updating the DOM if we have a new message
         if (mostRecentMessage.objectId !== app.lastMessageId || app.roomname !== displayedRoom) {
           // Update the UI with the fetched rooms
@@ -115,18 +117,20 @@ var app = {
   },
 
   populateRooms: function(results) {
-    app.$roomSelect.html('<option value="__newRoom">New room...</option><option value="" selected>Lobby</option></select>');
+    // app.$roomSelect.append('<input id="roomname" type="text">');
 
     if (results) {
       var rooms = {};
       results.forEach(function(data) {
         var roomname = data.roomname;
+        console.log('roomname',roomname);
         if (roomname && !rooms[roomname]) {
           // Add the room to the select menu
           app.addRoom(roomname);
 
           // Store that we've added this room already
           rooms[roomname] = true;
+          console.log('rooms',rooms);
         }
       });
     }
@@ -137,31 +141,31 @@ var app = {
 
   addRoom: function(roomname) {
     // Prevent XSS by escaping with DOM methods
-    var $option = $('<option/>').val(roomname).text(roomname);
+    var $li = $('<li>').val(roomname).text(roomname);
 
     // Add to select
-    app.$roomSelect.append($option);
+    app.$roomSelect.append($li);
   },
 
   addMessage: function(data) {
     if (!data.roomname)
-      data.roomname = 'lobby';
+      data.roomname = $('#roomname').val();
 
     // Only add messages that are in our current room
     if (data.roomname === app.roomname) {
       // Create a div to hold the chats
-      var $chat = $('<div class="chat"/>');
+      var $chat = $('<div class="chat message"/>');
 
       // Add in the message data using DOM methods to avoid XSS
       // Store the username in the element's data
-      var $username = $('<span class="username"/>');
+      var $username = $('<a class="username user-name"/>');
       $username.text(data.username+': ').attr('data-username', data.username).attr('data-roomname',data.roomname).appendTo($chat);
 
       // Add the friend class
       if (app.friends[data.username] === true)
         $username.addClass('friend');
 
-      var $message = $('<br><span/>');
+      var $message = $('<p/>');
       $message.text(data.text).appendTo($chat);
 
       // Add the message to the UI
@@ -214,10 +218,11 @@ var app = {
   },
 
   handleSubmit: function(evt) {
+    console.log('evt',evt);
     var message = {
-      username: app.username,
+      username: $('#user').val(),
       text: app.$message.val(),
-      roomname: app.roomname || 'lobby'
+      roomname: app.roomname || 'Lobby'
     };
 
     app.send(message);
