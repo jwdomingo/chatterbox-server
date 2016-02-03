@@ -7,12 +7,22 @@ var headers = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
   "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10, // Seconds.
+  "access-control-max-age": 10,
   "Content-Type": "application/json"
 };
 
-var objectID = 0;
 var storage = [];
+var objectID = 0;
+var file = './server/data.txt';
+
+fs.readFile(file, function(error, data) {
+  if (error) {
+    console.error(error);
+  } else {
+    storage = JSON.parse(data);
+    console.log('File Read Successful', storage);
+  }
+});
 
 var sendResponse = function(response, statusCode) {
   statusCode = statusCode || 200;
@@ -29,17 +39,17 @@ var postHandler = function (request, response) {
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   var buffer = '';
-  var file = './server/data.txt';
   
   request.on('data', function(chunk) {
     buffer += chunk.toString();
   });
 
   request.on('end', function() {
-    var decodedBuffer = JSON.parse(buffer);
-    decodedBuffer.objectId = ++objectID;
+    var json = JSON.parse(buffer);
+    json.objectId = ++objectID;
+    storage.push(json);
 
-    fs.writeFile(file, buffer, function(error) {
+    fs.writeFile(file, JSON.stringify(storage), function(error) {
       if (error) {
         console.error(error);
       } else {
@@ -47,7 +57,6 @@ var postHandler = function (request, response) {
       }
     });
 
-    storage.push(decodedBuffer);
     sendResponse(response, 201);
   });
 };
