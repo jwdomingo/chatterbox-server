@@ -19,8 +19,10 @@ fs.readFile(file, function(error, data) {
   if (error) {
     console.error(error);
   } else {
-    storage = JSON.parse(data);
-    console.log('File Read Successful', storage);
+    if(data.length) {
+      storage = JSON.parse(data);
+      console.log('File Read Successful', storage);
+    }
   }
 });
 
